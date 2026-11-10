@@ -128,6 +128,134 @@ h1 { font-family: var(--title); font-weight: 400; font-size: clamp(26px, 6.5vw, 
 </main>
 
 <script>
+const GYM = ["Fit Zone:  $45 a month", "or $480 for a year", "FreeFit:  $32 a month", "or $360 for a year"];
+const PARTY = ["35 people are coming", "2 slices and 3 drinks each", "1 large pizza = 8 slices, $14", "1 six-pack of drinks = $4"];
+const pizza = (k, cx, cy, r, slices, color) => {
+  k.S(k.ring(cx, cy, r), { color, dur: 200, gap: 20, w: 2.4 });
+  for (let i = 0; i < slices / 2; i++) {
+    const a = i * 2 * Math.PI / slices + .3, dx = Math.cos(a) * r, dy = Math.sin(a) * r;
+    k.S(k.line(cx - dx, cy - dy, cx + dx, cy + dy), { color, dur: 60, gap: 10, w: 1.8 });
+  }
+};
+const STORY = { code: "5-11", name: "Real-World Math", problems: [
+  { type: "story", chip: "Gym: the model", title: "Monthly or yearly?", good: true,
+    note: "Your sheet has 45 × 12 and 32 × 12 = 384. That is the right model. Make sure the first answer reads 540.",
+    run(k) {
+      k.say("Set up", "Hector can pay a little every month or one big fee for the year. To compare them fairly, find what 12 monthly payments add up to.");
+      k.title("Monthly or yearly?"); k.data(GYM);
+      k.say("Model", "A year has 12 months, so multiply the monthly fee by 12. That is the math model. Then compare it with the annual fee.");
+      k.w("monthly fee × 12 = cost for a year", { color: "blue", size: 25 });
+      const a = k.area(62);
+      for (let i = 0; i < 12; i++) k.S(k.box(a.x + i * 26, a.y, 21, 21), { color: "blue", dur: 90, gap: 15, w: 2.2 });
+      k.T(a.x, a.y + 48, "12 months in a year", { size: 21, color: "blue" });
+      k.say("Fit Zone", "Break 12 into 10 + 2. 45 × 10 = 450 and 45 × 2 = 90. Add them: paying monthly at Fit Zone costs $540 for the year.");
+      k.w("Fit Zone:  45 × 12"); k.w("45 × 10 = 450", { indent: 28 }); k.w("45 × 2 = 90", { indent: 28 }); k.w("450 + 90 = $540", { indent: 28, color: "red" });
+      k.say("FreeFit", "Same idea. 32 × 10 = 320 and 32 × 2 = 64. Add them: paying monthly at FreeFit costs $384 for the year.");
+      k.w("FreeFit:  32 × 12"); k.w("32 × 10 = 320", { indent: 28 }); k.w("32 × 2 = 64", { indent: 28 }); k.w("320 + 64 = $384", { indent: 28, color: "red" });
+      k.say("Answer", "Now each gym has two yearly costs to compare: 12 monthly payments, or the annual fee from the table.");
+      k.gap(8); k.w("Fit Zone: $540 or $480", { color: "blue", size: 26 }); k.w("FreeFit: $384 or $360", { color: "blue", size: 26, tick: true });
+    } },
+  { type: "story", chip: "Gym: the answer", title: "Which way costs less?", good: false,
+    note: "Your sheet has all four numbers right: 540, 480, 384, 360. Now add the answer in words: paying annually costs less.",
+    run(k) {
+      const bars = (name, m, yr) => {
+        const a = k.area(100), sc = (a.w - 170) / 540;
+        k.T(a.x, a.y + 16, name, { size: 23, color: "blue" });
+        [["monthly", m, "red"], ["yearly", yr, "green"]].forEach(([lab, v, c], i) => {
+          const yb = a.y + 28 + i * 32;
+          k.T(a.x, yb + 18, lab, { size: 21 });
+          k.S(k.box(a.x + 78, yb, v * sc, 22), { color: c, dur: 420 });
+          k.T(a.x + 78 + v * sc + 8, yb + 19, "$" + v, { size: 22, color: c });
+        });
+      };
+      k.say("Set up", "From question 1: paying monthly for a whole year costs $540 at Fit Zone and $384 at FreeFit. The annual fees are $480 and $360.");
+      k.title("Which way costs less?");
+      k.data(["Fit Zone, 12 months: $540", "Fit Zone, annual fee: $480", "FreeFit, 12 months: $384", "FreeFit, annual fee: $360"]);
+      k.say("Fit Zone", "The bars show the two ways to pay at Fit Zone. The yearly bar is shorter. 540 - 480 = 60, so paying yearly saves $60.");
+      bars("Fit Zone", 540, 480); k.w("540 - 480 = $60 saved");
+      k.say("FreeFit", "At FreeFit the yearly bar is shorter too. 384 - 360 = 24, so paying yearly saves $24.");
+      bars("FreeFit", 384, 360); k.w("384 - 360 = $24 saved");
+      k.say("Answer", "Paying annually is the least expensive way at both gyms. The lowest cost of all is FreeFit's annual fee, $360.");
+      k.gap(8); k.w("Yearly costs less at both gyms", { color: "blue", under: true }); k.w("Cheapest: FreeFit yearly, $360", { color: "green", size: 25, tick: true });
+    } },
+  { type: "story", chip: "Gym: other factors", title: "What else matters?", good: false,
+    note: "Your sheet says FreeFit. That names a gym, but the question asks what else Hector should think about. Write one or two of these ideas instead.",
+    run(k) {
+      k.say("Set up", "A factor is something that helps you decide. Price is one factor. The question asks for others.");
+      k.title("What else matters?"); k.w("Cost is not the only thing!", { color: "blue" });
+      k.say("Getting there", "A cheap gym is no bargain if it is far away or closed when Hector is free.");
+      k.w("- How far away is each gym?"); k.w("- When is it open?");
+      k.say("What's inside", "The gyms might not have the same things. One could have a pool, classes, or newer machines.");
+      k.w("- Does it have a pool or classes?"); k.w("- Is it crowded?");
+      k.say("Using it", "The yearly fee only saves money if Hector keeps going all year. If he might stop after a few months, paying monthly could cost less.");
+      k.w("- Will he go all 12 months?");
+      k.say("Answer", "Any of these works. For example: Hector might also think about how close the gym is and whether it has the equipment he likes.");
+      k.gap(8); k.w("Pick one or two and", { color: "green" }); k.w("write them in a sentence.", { color: "green", tick: true });
+    } },
+  { type: "story", chip: "Party: pizzas", title: "How many pizzas?", good: true,
+    note: "Your sheet says 8 R6, so the answer is 9. That matches. Nice work!",
+    run(k) {
+      k.say("Set up", "First find how many slices everyone will eat. Then find how many pizzas it takes to get that many slices.");
+      k.title("How many pizzas?"); k.data(PARTY);
+      k.say("Slices needed", "35 people eat 2 slices each. 35 × 2 = 70, so Deondra needs 70 slices.");
+      k.w("35 people × 2 slices = 70 slices", { size: 25 });
+      k.say("Divide", "Each pizza has 8 slices, so divide 70 by 8. 8 × 8 = 64 is as close as we can get. 70 - 64 = 6 slices are still missing.");
+      k.w("70 ÷ 8 = ?"); k.w("8 × 8 = 64", { indent: 28 }); k.w("70 - 64 = 6 left", { indent: 28 }); k.w("70 ÷ 8 = 8 R6", { color: "red" });
+      k.say("The remainder", "8 pizzas only make 64 slices. The remainder 6 means six slices are still needed, and you can't buy part of a pizza. So add one more.");
+      const per = Math.floor(k.aw / 46), a = k.area(Math.ceil(9 / per) * 46 + 30);
+      for (let i = 0; i < 9; i++) pizza(k, a.x + 22 + (i % per) * 46, a.y + 22 + Math.floor(i / per) * 46, 19, 8, i < 8 ? "ink" : "red");
+      k.T(a.x, a.y + Math.ceil(9 / per) * 46 + 20, "8 pizzas = 64 slices. 1 more for the last 6!", { size: 21, color: "red" });
+      k.say("Answer", "Deondra should order 9 pizzas. 9 × 8 = 72 slices, which is enough for the 70 she needs.");
+      k.gap(8); k.w("Order 9 pizzas", { color: "blue", size: 34, under: true }); k.w("9 × 8 = 72 slices, enough for 70", { color: "green", size: 24, tick: true });
+    } },
+  { type: "story", chip: "Party: drinks", title: "How many 6-packs?", good: false,
+    note: "Your sheet has 105 ÷ 6 = 17 R3, which is right, but then says 20. The 3 extra drinks need just one more pack: 17 + 1 = 18.",
+    run(k) {
+      k.say("Set up", "Same plan as the pizzas. First find how many drinks are needed, then how many 6-packs that takes.");
+      k.title("How many 6-packs?"); k.data(PARTY);
+      k.say("Drinks needed", "35 people have 3 drinks each. Break 35 into 30 + 5: 30 × 3 = 90 and 5 × 3 = 15. That makes 105 drinks.");
+      k.w("35 people × 3 drinks"); k.w("30 × 3 = 90", { indent: 28 }); k.w("5 × 3 = 15", { indent: 28 }); k.w("90 + 15 = 105 drinks", { indent: 28, color: "red" });
+      k.say("Divide", "Divide 105 by 6. Ten packs use 60, leaving 45. Seven more packs use 42, leaving 3. That is 17 packs with 3 drinks still needed.");
+      k.w("105 ÷ 6 = ?"); k.w("6 × 10 = 60,  105 - 60 = 45", { indent: 28, size: 25 }); k.w("6 × 7 = 42,  45 - 42 = 3", { indent: 28, size: 25 }); k.w("105 ÷ 6 = 17 R3", { color: "red" });
+      k.say("The remainder", "17 packs hold only 102 drinks. Three more drinks are needed, so buy one more pack. One pack is enough because it holds 6.");
+      const per = Math.floor(k.aw / 28), rows = Math.ceil(18 / per), a = k.area(rows * 36 + 30);
+      for (let i = 0; i < 18; i++) k.S(k.box(a.x + 2 + (i % per) * 28, a.y + Math.floor(i / per) * 36, 21, 28), { color: i < 17 ? "ink" : "red", dur: 110, gap: 20, w: 2.2 });
+      k.T(a.x, a.y + rows * 36 + 18, "17 packs = 102 drinks. 1 more for the last 3!", { size: 21, color: "red" });
+      k.say("Answer", "Deondra should buy 18 six-packs. 18 × 6 = 108 drinks, which is enough for the 105 she needs.");
+      k.gap(8); k.w("Buy 18 six-packs", { color: "blue", size: 34, under: true }); k.w("18 × 6 = 108 drinks, enough for 105", { color: "green", size: 23, tick: true });
+    } },
+  { type: "story", chip: "Party: total cost", title: "What does it all cost?", good: false,
+    note: "Your pizza cost, 9 × 14 = 126, is right. The sheet used 20 packs of drinks ($80) and got $206. With 18 packs the drinks are $72, so the total is $198.",
+    run(k) {
+      k.say("Set up", "We know what to buy: 9 pizzas and 18 six-packs. Write one equation for each, then add the two costs.");
+      k.title("What does it all cost?"); k.data(["9 pizzas at $14 each", "18 six-packs at $4 each"]);
+      k.say("Pizzas", "Break 14 into 10 + 4. 9 × 10 = 90 and 9 × 4 = 36. Together that is $126 for pizza.");
+      k.w("Pizza:  9 × 14"); k.w("9 × 10 = 90", { indent: 28 }); k.w("9 × 4 = 36", { indent: 28 }); k.w("90 + 36 = $126", { indent: 28, color: "red" });
+      k.say("Drinks", "Break 18 into 10 + 8. 10 × 4 = 40 and 8 × 4 = 32. Together that is $72 for drinks.");
+      k.w("Drinks:  18 × 4"); k.w("10 × 4 = 40", { indent: 28 }); k.w("8 × 4 = 32", { indent: 28 }); k.w("40 + 32 = $72", { indent: 28, color: "red" });
+      k.say("Answer", "Add the two costs. 126 + 72 = 198. Deondra will spend $198 on supplies.");
+      k.gap(8); k.w("126 + 72 = $198", { color: "blue", size: 36, under: true }); k.w("total cost of all supplies", { color: "green", size: 24, tick: true });
+    } },
+  { type: "story", chip: "Party: pizza size", title: "Small or extra-large?", good: true,
+    note: "Your sheet says yes, a smaller pizza means she needs more pizzas. That's right! You can add that extra-large pizzas mean fewer.",
+    run(k) {
+      k.say("Set up", "Deondra assumed each pizza has 8 slices. That is true for a large pizza. Other sizes are cut into a different number of slices.");
+      k.title("Small or extra-large?"); k.data(["70 slices needed", "large pizza = 8 slices", "so she orders 9 pizzas"]);
+      const a = k.area(96);
+      pizza(k, a.x + 150, a.y + 34, 22, 8, "ink");
+      k.T(a.x + 150, a.y + 86, "large", { size: 21, anchor: "middle" });
+      k.say("Small pizzas", "A small pizza might have only 6 slices. 70 ÷ 6 = 11 R4, so she would need 12 small pizzas. More than 9.");
+      pizza(k, a.x + 50, a.y + 38, 15, 6, "red");
+      k.T(a.x + 50, a.y + 86, "small", { size: 21, anchor: "middle", color: "red" });
+      k.w("small: maybe 6 slices", { color: "red" }); k.w("70 ÷ 6 = 11 R4, so 12 pizzas", { indent: 28, size: 25 });
+      k.say("Extra-large pizzas", "An extra-large pizza might have 12 slices. 70 ÷ 12 = 5 R10, so she would need only 6. Fewer than 9.");
+      pizza(k, a.x + 262, a.y + 34, 30, 12, "green");
+      k.T(a.x + 262, a.y + 86, "extra-large", { size: 21, anchor: "middle", color: "green" });
+      k.w("extra-large: maybe 12 slices", { color: "green" }); k.w("70 ÷ 12 = 5 R10, so 6 pizzas", { indent: 28, size: 25 });
+      k.say("Answer", "Yes. The number of slices in each pizza would change, so the number of pizzas she orders would change too. The price of each pizza might change as well.");
+      k.gap(8); k.w("Yes! Slices per pizza changes,", { color: "blue", size: 26 }); k.w("so the number of pizzas changes.", { color: "blue", size: 26, tick: true });
+    } }
+] };
 const LESSONS = [{ code: "5-7", name: "Sharing to Divide", problems: [
   { n: 334, d: 4, est: "320 ÷ 4 = 80", good: true,  note: "Your sheet says 83 R2. That matches. Nice work!" },
   { n: 148, d: 6, est: "150 ÷ 6 = 25", good: true,  note: "Your sheet says 24 R4. That matches. Nice work!" },
@@ -148,7 +276,7 @@ const LESSONS = [{ code: "5-7", name: "Sharing to Divide", problems: [
   { type: "est", n: 321,  d: 39, method: "compat", D: 40, N: 320,  good: true,  note: "Your sheet says 320 ÷ 40 = 8. That matches. Nice work!" },
   { type: "est", n: 7901, d: 43, method: "compat", D: 40, N: 8000, good: false, note: "Your sheet says 2,000. Check it: 40 × 2,000 = 80,000. Too big! The estimate is 200." },
   { type: "est", n: 4216, d: 81, method: "compat", D: 80, N: 4000, good: false, note: "Your sheet looks like it used 4,200 ÷ 70 = 60. 81 is closer to 80 than to 70, so 4,000 ÷ 80 = 50 is a closer estimate." }
-] }];
+] }, STORY];
 let li = 0, PROBLEMS = LESSONS[0].problems;
 const fmt = x => x.toLocaleString("en-US");
 const PLACE = ["hundreds", "tens", "ones"], ONE = ["hundred", "ten", "one"];
@@ -199,13 +327,50 @@ function build(p, tall) {
   const tick = (x, y) => S(`M${f(x)} ${y - 9} L${f(x + 8)} ${y} L${f(x + 22)} ${y - 22}`, { color: "green", dur: 260 });
   const fin = (w, h) => {
     svg.setAttribute("viewBox", `0 0 ${w} ${Math.ceil(h)}`);
-    svg.setAttribute("aria-label", `Whiteboard working out ${fmt(p.n)} divided by ${p.d}`);
+    svg.setAttribute("aria-label", p.title ? "Whiteboard: " + p.title : `Whiteboard working out ${fmt(p.n)} divided by ${p.d}`);
     const pen = mk("g", { id: "pen", visibility: "hidden" });
     pen.append(mk("path", { d: "M0 0 L4 -11 L12 -6 Z", class: "tip ink" }), mk("path", { d: "M4 -11 L12 -6 L40 -50 L32 -55 Z", class: "body" }));
     svg.append(pen);
     return { items, caps, pen };
   };
   if (p.type === "est") return buildEst();
+  if (p.type === "story") return buildStory();
+
+  function buildStory() { // lesson 5-11: word problems written as a flowing column, facts and sketches beside it
+    const Wd = tall ? 460 : 800, x0 = tall ? 16 : 40, aw = tall ? 428 : 320;
+    const side = tall ? null : { x: 450, y: 122 };
+    let y = tall ? 58 : 62;
+    const k = { T, S, line, box, ring, aw, say: begin,
+      title(str) {
+        const t = T(x0, y, str, { size: 40 });
+        S(line(t.b.x, y + 11, t.b.x + t.b.width, y + 12), { color: "red", dur: 320 });
+        y += 14;
+      },
+      data(lines) {
+        const X = tall ? x0 : side.x, top = tall ? y + 12 : side.y - 22;
+        let yy = top + 22;
+        T(X + 14, yy, "what we know", { size: 22, color: "green" });
+        lines.forEach(l => { yy += 28; T(X + 14, yy, l, { size: 23 }); });
+        S(line(X + 3, top, X + 3, yy + 8), { color: "green", dur: 320 });
+        if (tall) y = yy + 4; else side.y = yy + 28;
+      },
+      w(str, o = {}) {
+        const size = o.size || 27;
+        y += size * 1.3;
+        const it = T(x0 + (o.indent || 0), y, str, { size, color: o.color });
+        if (o.under) { S(line(it.b.x, y + 9, it.b.x + it.b.width, y + 10), { color: "red", dur: 300 }); y += 6; }
+        if (o.tick) tick(it.b.x + it.b.width + 12, y);
+        return it;
+      },
+      gap(h) { y += h; },
+      area(h) {
+        if (tall) { const a = { x: x0, y: y + 14, w: aw }; y += h + 14; return a; }
+        const a = { x: side.x, y: side.y, w: aw }; side.y += h + 12; return a;
+      }
+    };
+    p.run(k);
+    return fin(Wd, Math.max(y + 30, side ? side.y : 0));
+  }
 
   function buildEst() { // lesson 5-10: swap in easy numbers, then divide
     const { n, d, D: dv, N: nv } = p, q = nv / dv, round = p.method === "round";
@@ -404,7 +569,7 @@ function setLesson(i) {
   $("chips").textContent = "";
   PROBLEMS.forEach((p, k) => {
     const b = document.createElement("button");
-    b.className = "chip"; b.type = "button"; b.textContent = `${k + 1}.  ${fmt(p.n)} ÷ ${p.d}`;
+    b.className = "chip"; b.type = "button"; b.textContent = `${k + 1}.  ${p.chip || fmt(p.n) + " ÷ " + p.d}`;
     b.onclick = () => { auto = false; open(k, 0, true); };
     $("chips").appendChild(b);
   });
