@@ -45,6 +45,13 @@ header { display: flex; flex-direction: column; }
 .eyebrow { color: var(--muted); font-size: 16px; letter-spacing: .06em; text-transform: uppercase; }
 h1 { font-family: var(--title); font-weight: 400; font-size: clamp(26px, 6.5vw, 36px); margin: 0; line-height: 1.1; }
 
+.lessons { display: flex; flex-wrap: wrap; gap: 8px; }
+.lesson {
+  font: inherit; font-size: 20px; cursor: pointer; flex: 1 1 200px;
+  padding: 8px 14px; min-height: 46px; border-radius: 10px; text-align: left;
+  border: 2px solid var(--frame); background: transparent; color: var(--ink);
+}
+.lesson[aria-current="true"] { background: var(--board); border-color: var(--ink); box-shadow: inset 0 -4px 0 var(--red); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   font: inherit; font-size: 19px; cursor: pointer;
@@ -91,14 +98,16 @@ h1 { font-family: var(--title); font-weight: 400; font-size: clamp(26px, 6.5vw, 
 }
 .btn.go { background: var(--blue); border-color: var(--blue); color: var(--btn-fg); flex: 1 1 auto; }
 .btn:disabled { opacity: .35; cursor: default; }
-.btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+.btn:focus-visible, .chip:focus-visible, .lesson:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 </style>
 
 <main>
   <header>
-    <span class="eyebrow">Additional Practice 5-7</span>
-    <h1>Sharing to Divide</h1>
+    <span class="eyebrow" id="eyebrow">Additional Practice 5-7</span>
+    <h1 id="lessonName">Sharing to Divide</h1>
   </header>
+
+  <nav class="lessons" id="lessons" aria-label="Pick a worksheet"></nav>
 
   <nav class="chips" id="chips" aria-label="Pick a problem"></nav>
 
@@ -119,7 +128,7 @@ h1 { font-family: var(--title); font-weight: 400; font-size: clamp(26px, 6.5vw, 
 </main>
 
 <script>
-const PROBLEMS = [
+const LESSONS = [{ code: "5-7", name: "Sharing to Divide", problems: [
   { n: 334, d: 4, est: "320 ÷ 4 = 80", good: true,  note: "Your sheet says 83 R2. That matches. Nice work!" },
   { n: 148, d: 6, est: "150 ÷ 6 = 25", good: true,  note: "Your sheet says 24 R4. That matches. Nice work!" },
   { n: 948, d: 7, est: "980 ÷ 7 = 140", good: true, note: "Your sheet says 135 R3. That matches. Nice work!" },
@@ -128,7 +137,20 @@ const PROBLEMS = [
   { n: 418, d: 8, est: "400 ÷ 8 = 50", good: true,  note: "Your sheet says 52 R2. That matches. Nice work!" },
   { n: 587, d: 2, est: "600 ÷ 2 = 300", good: false, note: "Your sheet says 293 R but the remainder number is missing. Write R1." },
   { n: 747, d: 8, est: "720 ÷ 8 = 90", good: true,  note: "Your sheet says 93 R3. That matches. Nice work!" }
-];
+] }, { code: "5-10", name: "Estimate Quotients", problems: [
+  { type: "est", n: 215,  d: 43, method: "round",  D: 40, N: 200,  lo: 200,  hi: 300,  good: false, note: "Your sheet says 50. Check it: 40 × 50 = 2,000, way more than 200. The estimate is 5." },
+  { type: "est", n: 6105, d: 29, method: "round",  D: 30, N: 6000, lo: 6000, hi: 7000, good: true,  note: "Your sheet says 6,000 ÷ 30 = 200. That matches. Nice work!" },
+  { type: "est", n: 4216, d: 53, method: "round",  D: 50, N: 4000, lo: 4000, hi: 5000, good: true,  note: "Your sheet says 4,000 ÷ 50 = 80. That matches. Nice work!" },
+  { type: "est", n: 549,  d: 62, method: "compat", D: 60, N: 540,  good: true,  note: "Your sheet says 540 ÷ 60 = 9. That matches. Nice work!" },
+  { type: "est", n: 2359, d: 81, method: "compat", D: 80, N: 2400, good: true,  note: "Your sheet says 2,400 ÷ 80 = 30. That matches. Nice work!" },
+  { type: "est", n: 6391, d: 74, method: "compat", D: 70, N: 6300, good: false, note: "Your sheet has 6,300 ÷ 70 but the answer looks like 70. 70 × 90 = 6,300, so the estimate is 90." },
+  { type: "est", n: 488,  d: 92, method: "compat", D: 90, N: 450,  good: true,  note: "Your sheet says 450 ÷ 90 = 5. That matches. Nice work!" },
+  { type: "est", n: 321,  d: 39, method: "compat", D: 40, N: 320,  good: true,  note: "Your sheet says 320 ÷ 40 = 8. That matches. Nice work!" },
+  { type: "est", n: 7901, d: 43, method: "compat", D: 40, N: 8000, good: false, note: "Your sheet says 2,000. Check it: 40 × 2,000 = 80,000. Too big! The estimate is 200." },
+  { type: "est", n: 4216, d: 81, method: "compat", D: 80, N: 4000, good: false, note: "Your sheet looks like it used 4,200 ÷ 70 = 60. 81 is closer to 80 than to 70, so 4,000 ÷ 80 = 50 is a closer estimate." }
+] }];
+let li = 0, PROBLEMS = LESSONS[0].problems;
+const fmt = x => x.toLocaleString("en-US");
 const PLACE = ["hundreds", "tens", "ones"], ONE = ["hundred", "ten", "one"];
 const KIND_COLOR = ["green", "red", "blue"]; // hundreds squares, tens sticks, ones dots
 const unit = (n, i) => n + " " + (n === 1 ? ONE[i] : PLACE[i]);
@@ -172,6 +194,95 @@ function build(p, tall) {
   const line = (x1, y1, x2, y2) => `M${f(x1)} ${f(y1)} Q${f((x1 + x2) / 2 + j(2))} ${f((y1 + y2) / 2 + j(2))} ${f(x2)} ${f(y2)}`;
   const box = (x, y, w, h) => `M${f(x + j(2))} ${f(y + j(2))} L${f(x + w + j(2))} ${f(y + j(2))} L${f(x + w + j(2))} ${f(y + h + j(2))} L${f(x + j(2))} ${f(y + h + j(2))} Z`;
   const ring = (cx, cy, r) => `M${f(cx - r)} ${f(cy)} A${r} ${r} 0 1 1 ${f(cx + r)} ${f(cy)} A${r} ${r} 0 1 1 ${f(cx - r)} ${f(cy + .6)}`;
+
+  const ell = (cx, cy, rx, ry) => `M${f(cx - rx)} ${f(cy)} A${f(rx)} ${f(ry)} 0 1 1 ${f(cx + rx)} ${f(cy)} A${f(rx)} ${f(ry)} 0 1 1 ${f(cx - rx)} ${f(cy + .6)}`;
+  const tick = (x, y) => S(`M${f(x)} ${y - 9} L${f(x + 8)} ${y} L${f(x + 22)} ${y - 22}`, { color: "green", dur: 260 });
+  const fin = (w, h) => {
+    svg.setAttribute("viewBox", `0 0 ${w} ${Math.ceil(h)}`);
+    svg.setAttribute("aria-label", `Whiteboard working out ${fmt(p.n)} divided by ${p.d}`);
+    const pen = mk("g", { id: "pen", visibility: "hidden" });
+    pen.append(mk("path", { d: "M0 0 L4 -11 L12 -6 Z", class: "tip ink" }), mk("path", { d: "M4 -11 L12 -6 L40 -50 L32 -55 Z", class: "body" }));
+    svg.append(pen);
+    return { items, caps, pen };
+  };
+  if (p.type === "est") return buildEst();
+
+  function buildEst() { // lesson 5-10: swap in easy numbers, then divide
+    const { n, d, D: dv, N: nv } = p, q = nv / dv, round = p.method === "round";
+    const Wd = tall ? 460 : 800, x0 = tall ? 16 : 40, yT = tall ? 58 : 62;
+    const yA = tall ? 172 : 160, yB = yA + 95, yF = yB + 52;
+    const A = tall ? { x: 20, y: yF + 30, w: 420 } : { x: 440, y: 120, w: 330 };
+    const xa = x0 + 62, xm = x0 + 150, xd = x0 + 215, xe = x0 + 280, xq = x0 + 345;
+    const big = (x, y, str, color) => T(x, y, String(str), { size: 44, anchor: "middle", color, rate: 110 });
+    const arrow = (x, y1, y2) => S(`M${x} ${y1} L${f(x + j(1.5))} ${y2} M${x - 6} ${y2 - 8} L${x} ${y2} L${x + 6} ${y2 - 8}`, { color: "red", w: 2.2, dur: 380 });
+    function numberLine(y, lo, hi, v) {
+      const x1 = A.x + 26, x2 = A.x + A.w - 26, xv = x1 + (x2 - x1) * (v - lo) / (hi - lo);
+      const near = v - lo <= hi - v ? lo : hi, xp = near === lo ? x1 : x2, dir = xp < xv ? 1 : -1;
+      S(line(x1, y, x2, y), { dur: 380 });
+      S(line(x1, y - 8, x1, y + 8), { dur: 90 });
+      S(line((x1 + x2) / 2, y - 5, (x1 + x2) / 2, y + 5), { dur: 70, w: 2 });
+      S(line(x2, y - 8, x2, y + 8), { dur: 90 });
+      T(x1, y + 32, fmt(lo), { size: 23, anchor: "middle" });
+      T(x2, y + 32, fmt(hi), { size: 23, anchor: "middle" });
+      S(ring(xv, y, 4.5), { color: "red", dur: 140 });
+      T(xv, y - 13, fmt(v), { size: 24, anchor: "middle", color: "red" });
+      S(`M${f(xv)} ${y - 40} Q${f((xv + xp) / 2)} ${y - 66} ${f(xp)} ${y - 12} M${f(xp + dir * 10)} ${y - 14} L${f(xp)} ${y - 12} L${f(xp + dir * 3)} ${y - 23}`, { color: "blue", dur: 420, w: 2.4 });
+      S(ell(xp, y + 24, 15 + fmt(near).length * 5, 15), { color: "blue", dur: 320, w: 2.4 });
+    }
+
+    begin("Set up", `We only need a close answer, so swap in numbers that are easy to divide in your head. ${round ? "This one uses rounding." : "This one uses compatible numbers."}`);
+    const tt = T(x0, yT, `${fmt(n)} ÷ ${d} is about ?`, { size: 40 });
+    S(line(tt.b.x, yT + 11, tt.b.x + tt.b.width, yT + 12), { color: "red", dur: 320 });
+    const tag = round ? "round both numbers" : "use compatible numbers";
+    if (tall) T(x0, yT + 36, tag, { size: 24, color: "green" });
+    else T(Wd - 30, yT - 2, tag, { size: 24, color: "green", anchor: "end" });
+    big(xa, yA, fmt(n)); big(xm, yA, "÷"); big(xd, yA, d);
+
+    const dlo = Math.floor(d / 10) * 10;
+    begin("Divisor", `${d} is between ${dlo} and ${dlo + 10}. It is closer to ${dv}, and ${dv} is much easier to divide by.`);
+    numberLine(A.y + 72, dlo, dlo + 10, d);
+    arrow(xd, yA + 14, yB - 44);
+    const dT = big(xd, yB, dv, "blue");
+
+    if (round) {
+      begin("Dividend", `${fmt(n)} is between ${fmt(p.lo)} and ${fmt(p.hi)}. It is closer to ${fmt(nv)}.`);
+      numberLine(A.y + 222, p.lo, p.hi, n);
+    } else {
+      begin("Dividend", `Now find a number near ${fmt(n)} that ${dv} divides evenly. ${dv} × ${fmt(q)} = ${fmt(nv)} is the closest.`);
+      const stepSize = 10 ** Math.floor(Math.log10(q) + 1e-9);
+      T(A.x + 6, A.y + 162, `${dv} × ? is close to ${fmt(n)}`, { size: 23, color: "blue" });
+      let k = 0, pick = null;
+      [q - stepSize, q, q + stepSize].filter(m => m > 0).forEach(m => {
+        const it = T(A.x + 34, A.y + 200 + k++ * 34, `${dv} × ${fmt(m)} = ${fmt(dv * m)}`, { size: 26 });
+        if (m === q) pick = it;
+      });
+      S(ell(pick.b.x + pick.b.width / 2, pick.b.y + pick.b.height / 2, pick.b.width / 2 + 14, pick.b.height / 2 + 1), { color: "red", dur: 420, w: 2.4 });
+    }
+    arrow(xa, yA + 14, yB - 44);
+    const nT = big(xa, yB, fmt(nv), "blue");
+    big(xm, yB, "÷");
+
+    const n1 = nv / 10, d1 = dv / 10;
+    let lead = n1;
+    while (lead % 10 === 0 && (lead / 10) % d1 === 0) lead /= 10;
+    const fact = lead === n1 ? `${n1} ÷ ${d1} = ${q}` : `${lead} ÷ ${d1} = ${lead / d1}, so ${fmt(n1)} ÷ ${d1} = ${fmt(q)}`;
+    begin("Divide", `Cross off one zero from each number: ${fmt(nv)} ÷ ${dv} is the same as ${fmt(n1)} ÷ ${d1}. ${fact}.`);
+    [nT, dT].forEach(it => {
+      const x = it.b.x + it.b.width - it.b.width / it.chars / 2;
+      S(`M${f(x - 8)} ${yB + 3} L${f(x + 8)} ${yB - 31}`, { color: "red", dur: 170 });
+    });
+    T(x0 + 8, yF, fact, { size: 27 });
+    big(xe, yB, "="); big(xq, yB, fmt(q), "green");
+
+    const said = `${fmt(n)} ÷ ${d} is about ${fmt(q)}`;
+    begin("Answer", `${said.replace(/ /g, "\u00a0")}. Multiply to check: ${dv} × ${fmt(q)} = ${fmt(nv)}, which is close to ${fmt(n)}.`);
+    const yAns = tall ? A.y + 330 : yF + 82;
+    const ans = T(x0, yAns, said, { size: 36, color: "blue" });
+    S(line(ans.b.x, yAns + 11, ans.b.x + ans.b.width, yAns + 12), { color: "red", dur: 320 });
+    const chk = T(x0, yAns + 42, `check: ${dv} × ${fmt(q)} = ${fmt(nv)}`, { size: 25, color: "green" });
+    tick(chk.b.x + chk.b.width + 12, yAns + 42);
+    return fin(Wd, Math.max(yAns + 66, tall ? 0 : A.y + 300));
+  }
 
   const ds = String(p.n).split("").map(Number), n = ds.length, d = p.d;
   const Q = Math.floor(p.n / d), R = p.n % d, hasH = Q >= 100;
@@ -273,25 +384,32 @@ function build(p, tall) {
   const kx = chk.b.x + chk.b.width + 12;
   S(`M${f(kx)} ${chkY - 9} L${f(kx + 8)} ${chkY} L${f(kx + 22)} ${chkY - 22}`, { color: "green", dur: 260 });
 
-  const H = Math.max(chkY + 24, tall ? 0 : noteY);
-  svg.setAttribute("viewBox", `0 0 ${W} ${Math.ceil(H)}`);
-  svg.setAttribute("aria-label", `Whiteboard working out ${p.n} divided by ${d}`);
-
-  const pen = mk("g", { id: "pen", visibility: "hidden" });
-  pen.append(mk("path", { d: "M0 0 L4 -11 L12 -6 Z", class: "tip ink" }), mk("path", { d: "M4 -11 L12 -6 L40 -50 L32 -55 Z", class: "body" }));
-  svg.append(pen);
-  return { items, caps, pen };
+  return fin(W, Math.max(chkY + 24, tall ? 0 : noteY));
 }
 
 const done = new Set();
 let pi = 0, si = 0, model = null, raf = 0, wait = 0, running = false, auto = false, liveItems = [];
 
-PROBLEMS.forEach((p, i) => {
+LESSONS.forEach((l, i) => {
   const b = document.createElement("button");
-  b.className = "chip"; b.type = "button"; b.textContent = `${i + 1}.  ${p.n} ÷ ${p.d}`;
-  b.onclick = () => { auto = false; open(i, 0, true); };
-  $("chips").appendChild(b);
+  b.className = "lesson"; b.type = "button"; b.textContent = `${l.code}  ${l.name}`;
+  b.onclick = () => { auto = false; setLesson(i); };
+  $("lessons").appendChild(b);
 });
+function setLesson(i) {
+  li = i; PROBLEMS = LESSONS[i].problems;
+  $("eyebrow").textContent = "Additional Practice " + LESSONS[i].code;
+  $("lessonName").textContent = LESSONS[i].name;
+  [...$("lessons").children].forEach((b, k) => b.setAttribute("aria-current", k === i));
+  $("chips").textContent = "";
+  PROBLEMS.forEach((p, k) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.type = "button"; b.textContent = `${k + 1}.  ${fmt(p.n)} ÷ ${p.d}`;
+    b.onclick = () => { auto = false; open(k, 0, true); };
+    $("chips").appendChild(b);
+  });
+  open(0, 0, true);
+}
 
 function setP(it, p) {
   it.el.style.visibility = p > 0 ? "visible" : "hidden";
@@ -304,7 +422,7 @@ function open(i, s, animate) {
   model = build(PROBLEMS[i], narrow.matches);
   [...$("chips").children].forEach((c, k) => {
     c.setAttribute("aria-current", k === i);
-    c.classList.toggle("done", done.has(k));
+    c.classList.toggle("done", done.has(li + "-" + k));
   });
   show(animate);
 }
@@ -370,7 +488,7 @@ function finish() {
     $("note").textContent = p.note;
     $("note").classList.toggle("good", p.good);
     $("note").hidden = false;
-    done.add(pi);
+    done.add(li + "-" + pi);
     $("chips").children[pi].classList.add("done");
     auto = false;
     $("play").textContent = "▶ Play";
@@ -418,5 +536,5 @@ document.addEventListener("keydown", e => {
 narrow.addEventListener("change", () => open(pi, si, false));
 
 const fontsReady = document.fonts && document.fonts.load ? document.fonts.load('30px "Patrick Hand"') : Promise.resolve();
-Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).catch(() => {}).then(() => open(0, 0, true));
+Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).catch(() => {}).then(() => setLesson(0));
 </script>
