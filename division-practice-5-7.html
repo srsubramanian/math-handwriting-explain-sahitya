@@ -1,0 +1,316 @@
+<title>Sharing to Divide 5-7</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap">
+<style>
+/* Layout: one sheet of graph paper on a desk. Number tabs on top, the long-division
+   work written on the grid squares, one explanation at a time underneath, big buttons last. */
+:root {
+  --desk: #dfe7ef;
+  --paper: #fbfcfe;
+  --grid: #cfe0f2;
+  --pencil: #2f3640;
+  --pen: #1d4fd8;
+  --teacher: #c8322b;
+  --ok: #1c7f45;
+  --muted: #5f6b7a;
+  --btn-fg: #ffffff;
+  --digits: "Gochi Hand", "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
+  --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
+  --cell: clamp(34px, 10vw, 50px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #131f1a; --paper: #22362f; --grid: #2f4a3e; --pencil: #f1efe6;
+    --pen: #8fd0ff; --teacher: #ffa392; --ok: #9be28f; --muted: #a9bdb2; --btn-fg: #10201a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #131f1a; --paper: #22362f; --grid: #2f4a3e; --pencil: #f1efe6;
+  --pen: #8fd0ff; --teacher: #ffa392; --ok: #9be28f; --muted: #a9bdb2; --btn-fg: #10201a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--desk);
+  color: var(--pencil);
+  font-family: var(--hand);
+  font-size: 20px;
+  line-height: 1.35;
+  padding-block: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sheet {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--paper);
+  border-radius: 6px;
+  box-shadow: 0 2px 0 var(--grid), 0 10px 30px rgb(0 0 0 / .12);
+  padding: 20px clamp(14px, 4vw, 28px) 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+header { display: flex; flex-direction: column; gap: 2px; }
+.eyebrow { color: var(--muted); font-size: 16px; letter-spacing: .06em; text-transform: uppercase; }
+h1 { font-family: var(--digits); font-weight: 400; font-size: clamp(28px, 7vw, 38px); margin: 0; line-height: 1.1; text-wrap: balance; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tab {
+  font: inherit; font-family: var(--digits); font-size: 22px;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid var(--pencil); background: transparent; color: var(--pencil);
+  cursor: pointer; position: relative;
+}
+.tab[aria-current="true"] { background: var(--pen); border-color: var(--pen); color: var(--btn-fg); }
+.tab.done::after {
+  content: "✓"; position: absolute; right: -6px; top: -10px;
+  color: var(--ok); font-size: 22px; font-family: var(--hand);
+}
+h2 { font-family: var(--hand); font-weight: 400; font-size: 24px; margin: 0; }
+h2 b { font-family: var(--digits); font-weight: 400; color: var(--pen); font-size: 28px; }
+
+.work {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1.5px, transparent 1.5px),
+    linear-gradient(90deg, var(--grid) 1.5px, transparent 1.5px);
+  background-size: var(--cell) var(--cell);
+  border: 1.5px solid var(--grid);
+  padding: var(--cell) 0;
+  display: flex; justify-content: center;
+  overflow-x: auto;
+}
+.grid { display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); }
+.c {
+  font-family: var(--digits);
+  font-size: calc(var(--cell) * .86);
+  line-height: var(--cell);
+  text-align: center;
+  color: var(--pencil);
+  font-variant-numeric: tabular-nums;
+}
+.c > span { display: inline-block; opacity: 0; transform: rotate(var(--tilt, 0deg)); }
+.c.on > span { opacity: 1; }
+.c.on.fresh { color: var(--pen); }
+.c.on.over { box-shadow: inset 0 3px 0 currentColor; }
+.c.on.under { box-shadow: inset 0 -3px 0 currentColor; }
+.c.small { font-size: calc(var(--cell) * .66); }
+.c.on.writing > span { animation: write .32s cubic-bezier(.3, 1.4, .5, 1) both; animation-delay: var(--delay, 0s); }
+@keyframes write {
+  from { opacity: 0; transform: translateY(-.25em) rotate(-14deg) scale(.5); }
+  to { opacity: 1; transform: rotate(var(--tilt, 0deg)) scale(1); }
+}
+
+.say { min-height: 6.2em; display: flex; flex-direction: column; gap: 6px; }
+.count { color: var(--muted); font-size: 17px; }
+.line { font-size: clamp(22px, 5.6vw, 26px); line-height: 1.3; margin: 0; }
+.line .ghost { visibility: hidden; }
+.line .pencil { color: var(--pen); }
+.note { margin: 0; font-size: 21px; color: var(--teacher); transform: rotate(-.6deg); }
+.note.good { color: var(--ok); }
+
+.btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn {
+  font: inherit; font-size: 22px; cursor: pointer;
+  padding: 10px 20px; border-radius: 999px; min-height: 50px;
+  border: 2px solid var(--pencil); background: transparent; color: var(--pencil);
+}
+.btn.go { background: var(--pen); border-color: var(--pen); color: var(--btn-fg); flex: 1 1 180px; }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn:focus-visible, .tab:focus-visible { outline: 3px solid var(--teacher); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .c.on.writing > span { animation: none; }
+}
+</style>
+
+<main class="sheet">
+  <header>
+    <span class="eyebrow">Additional Practice 5-7</span>
+    <h1>Sharing to Divide</h1>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Pick a problem"></nav>
+
+  <h2 id="heading"></h2>
+
+  <div class="work"><div class="grid" id="grid" role="img"></div></div>
+
+  <section class="say" aria-live="polite">
+    <span class="count" id="count"></span>
+    <p class="line" id="line"></p>
+    <p class="note" id="note" hidden></p>
+  </section>
+
+  <div class="btns">
+    <button class="btn" id="back" type="button">← Back</button>
+    <button class="btn go" id="next" type="button">Next step ✏️</button>
+  </div>
+</main>
+
+<script>
+const PROBLEMS = [
+  { n: 334, d: 4, est: "320 ÷ 4 = 80", good: true,  note: "Your sheet says 83 R2. That matches. Nice work!" },
+  { n: 148, d: 6, est: "150 ÷ 6 = 25", good: true,  note: "Your sheet says 24 R4. That matches. Nice work!" },
+  { n: 948, d: 7, est: "980 ÷ 7 = 140", good: true, note: "Your sheet says 135 R3. That matches. Nice work!" },
+  { n: 179, d: 4, est: "160 ÷ 4 = 40", good: false, note: "Your sheet looks like it says 19. Fix this one: 17 tens shared into 4 groups is 4 tens each, so the answer starts with 4." },
+  { n: 125, d: 5, est: "100 ÷ 5 = 20", good: true,  note: "Your sheet says 25. That matches. Nice work!" },
+  { n: 418, d: 8, est: "400 ÷ 8 = 50", good: true,  note: "Your sheet says 52 R2. That matches. Nice work!" },
+  { n: 587, d: 2, est: "600 ÷ 2 = 300", good: false, note: "Your sheet says 293 R but the remainder number is missing. Write R1." },
+  { n: 747, d: 8, est: "720 ÷ 8 = 90", good: true,  note: "Your sheet says 93 R3. That matches. Nice work!" }
+];
+const PLACE = ["hundreds", "tens", "ones"], ONE = ["hundred", "ten", "one"];
+const unit = (n, i) => n + " " + (n === 1 ? ONE[i] : PLACE[i]);
+const C = 2; // first dividend column
+
+function build(p) {
+  const ds = String(p.n).split("").map(Number), n = ds.length, d = p.d;
+  const steps = [], cells = {};
+  let step;
+  const begin = text => { step = { text, mark: [] }; steps.push(step); };
+  const put = (r, c, ch, cls) => { cells[r + "," + c] = { ch: String(ch), cls: cls || "", step: steps.length - 1 }; };
+
+  begin(`We need to share ${p.n} into ${d} equal groups. Start with the biggest blocks.`);
+  put(1, 0, d); put(1, 1, ")");
+  ds.forEach((x, i) => put(1, C + i, x, "over"));
+
+  let cur = 0, started = false, row = 2, curRow = 1, prev = 0, Q = 0;
+  for (let i = 0; i < n; i++) {
+    cur = cur * 10 + ds[i];
+    if (started) {
+      begin(prev === 0
+        ? `No ${PLACE[i - 1]} left over. Bring down the ${unit(ds[i], i)}. Now we have ${unit(cur, i)} to share.`
+        : `Trade the ${unit(prev, i - 1)} for ${prev * 10} ${PLACE[i]}. Bring down the ${ds[i]} more ${PLACE[i]}. Now we have ${unit(cur, i)}.`);
+      put(curRow, C + i, ds[i]);
+    }
+    if (!started && cur < d && i < n - 1) {
+      begin(`${unit(cur, i)} is not enough to give each of the ${d} groups one. Trade them: ${unit(cur, i)} make ${cur * 10} ${PLACE[i + 1]}, plus ${ds[i + 1]} more makes ${cur * 10 + ds[i + 1]} ${PLACE[i + 1]}.`);
+      step.mark.push("1," + (C + i), "1," + (C + i + 1));
+      continue;
+    }
+    started = true;
+    const q = Math.floor(cur / d), prod = q * d, rem = cur - prod;
+    Q = Q * 10 + q;
+    begin(`Share ${unit(cur, i)} into ${d} groups. ${d} × ${q} = ${prod} is as close as we can get without going over. Each group gets ${unit(q, i)}. Write ${q} on top.`);
+    put(0, C + i, q);
+
+    begin(`We gave out ${d} × ${q} = ${unit(prod, i)}. Subtract: ${cur} − ${prod} = ${rem}. ${rem ? unit(rem, i) + " left over." : "Nothing left over!"}`);
+    const ps = String(prod);
+    put(row, C + i - ps.length, "−", "under");
+    ps.split("").forEach((ch, k) => put(row, C + i - ps.length + 1 + k, ch, "under"));
+    put(row + 1, C + i, rem);
+    curRow = row + 1; row += 2; prev = rem;
+  }
+  const answer = p.n + " ÷ " + d + " = " + Q + (prev ? " R" + prev : "");
+  if (prev) {
+    begin(`${unit(prev, n - 1)} left. That is fewer than ${d}, so we can't share ${prev === 1 ? "it" : "them"} fairly. That's the remainder, R. So ${answer}.`);
+    put(0, C + n, "R", "small"); put(0, C + n + 1, prev);
+  } else {
+    begin(`Nothing is left over, so there is no remainder. So ${answer}.`);
+  }
+  begin(`Check: ${d} × ${Q} = ${d * Q}${prev ? `, and ${d * Q} + ${prev} = ${p.n}` : ""}. ✓ Estimate: ${p.est}. Our answer ${Q} is close to that, so it makes sense.`);
+  return { steps, cells, rows: row, answer };
+}
+
+const $ = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const done = new Set();
+let pi = 0, si = 0, model = null, timer = null;
+
+PROBLEMS.forEach((p, i) => {
+  const b = document.createElement("button");
+  b.className = "tab"; b.type = "button"; b.textContent = i + 1;
+  b.setAttribute("aria-label", `Problem ${i + 1}: ${p.n} divided by ${p.d}`);
+  b.onclick = () => open(i);
+  $("tabs").appendChild(b);
+});
+
+function open(i) {
+  pi = i; si = 0; model = build(PROBLEMS[i]);
+  const p = PROBLEMS[i], g = $("grid");
+  $("heading").innerHTML = `Problem ${i + 1}: <b>${p.n} ÷ ${p.d}</b>`;
+  g.textContent = "";
+  g.setAttribute("aria-label", `Long division of ${p.n} by ${p.d}`);
+  for (let r = 0; r < model.rows; r++) for (let c = 0; c < 7; c++) {
+    const el = document.createElement("div"), cell = model.cells[r + "," + c];
+    el.className = "c " + (cell ? cell.cls : "");
+    el.dataset.key = r + "," + c;
+    if (cell) {
+      const s = document.createElement("span");
+      s.textContent = cell.ch;
+      s.style.setProperty("--tilt", (((r * 7 + c * 13) % 9) - 4) + "deg");
+      el.appendChild(s);
+    }
+    g.appendChild(el);
+  }
+  [...$("tabs").children].forEach((t, k) => {
+    t.setAttribute("aria-current", k === i);
+    t.classList.toggle("done", done.has(k));
+  });
+  render(true);
+}
+
+function render(animate) {
+  const st = model.steps[si], last = si === model.steps.length - 1;
+  let order = 0;
+  document.querySelectorAll("#grid .c").forEach(el => {
+    const cell = model.cells[el.dataset.key];
+    if (!cell) return;
+    const isNew = cell.step === si;
+    el.classList.toggle("on", cell.step <= si);
+    el.classList.toggle("fresh", isNew || st.mark.includes(el.dataset.key));
+    el.classList.remove("writing");
+    if (isNew && animate && !reduce) {
+      el.style.setProperty("--delay", (order++ * 0.24) + "s");
+      void el.offsetWidth;
+      el.classList.add("writing");
+    }
+  });
+  $("count").textContent = `Step ${si + 1} of ${model.steps.length}`;
+  $("back").disabled = si === 0;
+  $("next").textContent = !last ? "Next step ✏️" : pi < PROBLEMS.length - 1 ? "Next problem →" : "Start over ↺";
+  $("note").hidden = true;
+  type(st.text, animate && !reduce, () => {
+    if (!last) return;
+    const p = PROBLEMS[pi];
+    $("note").textContent = p.note;
+    $("note").classList.toggle("good", p.good);
+    $("note").hidden = false;
+    done.add(pi);
+    $("tabs").children[pi].classList.add("done");
+  });
+}
+
+function type(text, animate, after) {
+  clearInterval(timer); timer = null;
+  const line = $("line");
+  line.textContent = "";
+  const shown = document.createElement("span"), ghost = document.createElement("span");
+  ghost.className = "ghost";
+  line.append(shown, ghost);
+  let k = animate ? 0 : text.length;
+  const paint = () => { shown.textContent = text.slice(0, k); ghost.textContent = text.slice(k); };
+  const finish = () => { clearInterval(timer); timer = null; k = text.length; paint(); after(); };
+  type.finish = finish;
+  paint();
+  if (!animate) return finish();
+  timer = setInterval(() => { k++; paint(); if (k >= text.length) finish(); }, 32);
+}
+
+function next() {
+  if (timer) return type.finish();
+  if (si < model.steps.length - 1) { si++; render(true); }
+  else open((pi + 1) % PROBLEMS.length);
+}
+function back() { if (si > 0) { si--; render(false); } }
+
+$("next").onclick = next;
+$("back").onclick = back;
+document.addEventListener("keydown", e => {
+  if (e.target.closest("button")) return;
+  if (e.key === "ArrowRight") next();
+  if (e.key === "ArrowLeft") back();
+});
+
+open(0);
+</script>
