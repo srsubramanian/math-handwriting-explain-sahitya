@@ -2,149 +2,119 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap">
 <style>
-/* Layout: one sheet of graph paper on a desk. Number tabs on top, the long-division
-   work written on the grid squares, one explanation at a time underneath, big buttons last. */
+/* Layout: a dry-erase board that a marker writes on, one step at a time. Problem chips above,
+   a sticky dock below with the step's explanation and the Back / Play / Next buttons. */
 :root {
-  --desk: #dfe7ef;
-  --paper: #fbfcfe;
-  --grid: #cfe0f2;
-  --pencil: #2f3640;
-  --pen: #1d4fd8;
-  --teacher: #c8322b;
-  --ok: #1c7f45;
-  --muted: #5f6b7a;
+  --desk: #e3e8e4;
+  --board: #fdfdfb;
+  --frame: #c3cbc6;
+  --ink: #23272e;
+  --blue: #1f55c9;
+  --red: #c9352b;
+  --green: #1d7f43;
+  --muted: #5d6963;
   --btn-fg: #ffffff;
-  --digits: "Gochi Hand", "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
+  --title: "Gochi Hand", "Patrick Hand", "Comic Sans MS", cursive;
   --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
-  --cell: clamp(34px, 10vw, 50px);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --desk: #131f1a; --paper: #22362f; --grid: #2f4a3e; --pencil: #f1efe6;
-    --pen: #8fd0ff; --teacher: #ffa392; --ok: #9be28f; --muted: #a9bdb2; --btn-fg: #10201a;
+    --desk: #121815; --board: #1f2a26; --frame: #4a5750; --ink: #f0eee4;
+    --blue: #8fc7ff; --red: #ff9c8c; --green: #9be28f; --muted: #a5b5ad; --btn-fg: #10201a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --desk: #131f1a; --paper: #22362f; --grid: #2f4a3e; --pencil: #f1efe6;
-  --pen: #8fd0ff; --teacher: #ffa392; --ok: #9be28f; --muted: #a9bdb2; --btn-fg: #10201a;
+  --desk: #121815; --board: #1f2a26; --frame: #4a5750; --ink: #f0eee4;
+  --blue: #8fc7ff; --red: #ff9c8c; --green: #9be28f; --muted: #a5b5ad; --btn-fg: #10201a;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
   background: var(--desk);
-  color: var(--pencil);
+  color: var(--ink);
   font-family: var(--hand);
   font-size: 20px;
-  line-height: 1.35;
-  padding-block: 20px;
+  line-height: 1.3;
+  padding-block: 16px 0;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.sheet {
-  max-width: 640px;
-  margin: 0 auto;
-  background: var(--paper);
-  border-radius: 6px;
-  box-shadow: 0 2px 0 var(--grid), 0 10px 30px rgb(0 0 0 / .12);
-  padding: 20px clamp(14px, 4vw, 28px) 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-header { display: flex; flex-direction: column; gap: 2px; }
+main { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+header { display: flex; flex-direction: column; }
 .eyebrow { color: var(--muted); font-size: 16px; letter-spacing: .06em; text-transform: uppercase; }
-h1 { font-family: var(--digits); font-weight: 400; font-size: clamp(28px, 7vw, 38px); margin: 0; line-height: 1.1; text-wrap: balance; }
-.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
-.tab {
-  font: inherit; font-family: var(--digits); font-size: 22px;
-  width: 44px; height: 44px; border-radius: 50%;
-  border: 2px solid var(--pencil); background: transparent; color: var(--pencil);
-  cursor: pointer; position: relative;
-}
-.tab[aria-current="true"] { background: var(--pen); border-color: var(--pen); color: var(--btn-fg); }
-.tab.done::after {
-  content: "✓"; position: absolute; right: -6px; top: -10px;
-  color: var(--ok); font-size: 22px; font-family: var(--hand);
-}
-h2 { font-family: var(--hand); font-weight: 400; font-size: 24px; margin: 0; }
-h2 b { font-family: var(--digits); font-weight: 400; color: var(--pen); font-size: 28px; }
+h1 { font-family: var(--title); font-weight: 400; font-size: clamp(26px, 6.5vw, 36px); margin: 0; line-height: 1.1; }
 
-.work {
-  background-color: var(--paper);
-  background-image:
-    linear-gradient(var(--grid) 1.5px, transparent 1.5px),
-    linear-gradient(90deg, var(--grid) 1.5px, transparent 1.5px);
-  background-size: var(--cell) var(--cell);
-  border: 1.5px solid var(--grid);
-  padding: var(--cell) 0;
-  display: flex; justify-content: center;
-  overflow-x: auto;
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  font: inherit; font-size: 19px; cursor: pointer;
+  padding: 4px 12px; min-height: 40px; border-radius: 999px;
+  border: 2px solid var(--frame); background: var(--board); color: var(--ink);
 }
-.grid { display: grid; grid-template-columns: repeat(7, var(--cell)); grid-auto-rows: var(--cell); }
-.c {
-  font-family: var(--digits);
-  font-size: calc(var(--cell) * .86);
-  line-height: var(--cell);
-  text-align: center;
-  color: var(--pencil);
-  font-variant-numeric: tabular-nums;
-}
-.c > span { display: inline-block; opacity: 0; transform: rotate(var(--tilt, 0deg)); }
-.c.on > span { opacity: 1; }
-.c.on.fresh { color: var(--pen); }
-.c.on.over { box-shadow: inset 0 3px 0 currentColor; }
-.c.on.under { box-shadow: inset 0 -3px 0 currentColor; }
-.c.small { font-size: calc(var(--cell) * .66); }
-.c.on.writing > span { animation: write .32s cubic-bezier(.3, 1.4, .5, 1) both; animation-delay: var(--delay, 0s); }
-@keyframes write {
-  from { opacity: 0; transform: translateY(-.25em) rotate(-14deg) scale(.5); }
-  to { opacity: 1; transform: rotate(var(--tilt, 0deg)) scale(1); }
-}
+.chip[aria-current="true"] { background: var(--blue); border-color: var(--blue); color: var(--btn-fg); }
+.chip.done::after { content: " ✓"; color: var(--green); }
+.chip.done[aria-current="true"]::after { color: var(--btn-fg); }
 
-.say { min-height: 6.2em; display: flex; flex-direction: column; gap: 6px; }
+.board {
+  background: var(--board);
+  border: 8px solid var(--frame);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .14);
+}
+.board svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.tray { display: flex; gap: 8px; justify-content: flex-end; padding: 6px 14px; border-top: 3px solid var(--frame); }
+.tray i { width: 34px; height: 7px; border-radius: 4px; }
+.t { font-family: var(--hand); }
+.s { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; }
+.t.ink { fill: var(--ink); } .t.blue { fill: var(--blue); } .t.red { fill: var(--red); } .t.green { fill: var(--green); }
+.s.ink { stroke: var(--ink); } .s.blue { stroke: var(--blue); } .s.red { stroke: var(--red); } .s.green { stroke: var(--green); }
+.bg-ink { background: var(--ink); } .bg-blue { background: var(--blue); } .bg-red { background: var(--red); } .bg-green { background: var(--green); }
+#pen .body { fill: var(--muted); stroke: var(--board); stroke-width: 1.5; }
+#pen .tip.ink { fill: var(--ink); } #pen .tip.blue { fill: var(--blue); } #pen .tip.red { fill: var(--red); } #pen .tip.green { fill: var(--green); }
+
+.dock {
+  position: sticky; bottom: 0; z-index: 5;
+  background: var(--desk);
+  border-top: 2px solid var(--frame);
+  padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: 8px;
+}
 .count { color: var(--muted); font-size: 17px; }
-.line { font-size: clamp(22px, 5.6vw, 26px); line-height: 1.3; margin: 0; }
-.line .ghost { visibility: hidden; }
-.line .pencil { color: var(--pen); }
-.note { margin: 0; font-size: 21px; color: var(--teacher); transform: rotate(-.6deg); }
-.note.good { color: var(--ok); }
-
-.btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.say { margin: 0; font-size: clamp(20px, 5vw, 23px); min-height: 3.9em; max-width: 62ch; }
+.note { display: block; color: var(--red); }
+.note.good { color: var(--green); }
+.btns { display: flex; gap: 8px; }
 .btn {
-  font: inherit; font-size: 22px; cursor: pointer;
-  padding: 10px 20px; border-radius: 999px; min-height: 50px;
-  border: 2px solid var(--pencil); background: transparent; color: var(--pencil);
+  font: inherit; font-size: 21px; cursor: pointer;
+  padding: 8px 16px; min-height: 48px; border-radius: 999px;
+  border: 2px solid var(--ink); background: var(--board); color: var(--ink);
 }
-.btn.go { background: var(--pen); border-color: var(--pen); color: var(--btn-fg); flex: 1 1 180px; }
+.btn.go { background: var(--blue); border-color: var(--blue); color: var(--btn-fg); flex: 1 1 auto; }
 .btn:disabled { opacity: .35; cursor: default; }
-.btn:focus-visible, .tab:focus-visible { outline: 3px solid var(--teacher); outline-offset: 3px; }
-@media (prefers-reduced-motion: reduce) {
-  .c.on.writing > span { animation: none; }
-}
+.btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 </style>
 
-<main class="sheet">
+<main>
   <header>
     <span class="eyebrow">Additional Practice 5-7</span>
     <h1>Sharing to Divide</h1>
   </header>
 
-  <nav class="tabs" id="tabs" aria-label="Pick a problem"></nav>
+  <nav class="chips" id="chips" aria-label="Pick a problem"></nav>
 
-  <h2 id="heading"></h2>
+  <div class="board">
+    <svg id="board" viewBox="0 0 800 640" role="img" aria-label="Whiteboard"></svg>
+    <div class="tray" aria-hidden="true"><i class="bg-ink"></i><i class="bg-blue"></i><i class="bg-red"></i><i class="bg-green"></i></div>
+  </div>
 
-  <div class="work"><div class="grid" id="grid" role="img"></div></div>
-
-  <section class="say" aria-live="polite">
+  <div class="dock">
     <span class="count" id="count"></span>
-    <p class="line" id="line"></p>
-    <p class="note" id="note" hidden></p>
-  </section>
-
-  <div class="btns">
-    <button class="btn" id="back" type="button">← Back</button>
-    <button class="btn go" id="next" type="button">Next step ✏️</button>
+    <p class="say" aria-live="polite"><span id="say"></span> <span class="note" id="note" hidden></span></p>
+    <div class="btns">
+      <button class="btn" id="back" type="button" aria-label="Back one step">←</button>
+      <button class="btn" id="play" type="button">▶ Play</button>
+      <button class="btn go" id="next" type="button">Next step</button>
+    </div>
   </div>
 </main>
 
@@ -153,164 +123,300 @@ const PROBLEMS = [
   { n: 334, d: 4, est: "320 ÷ 4 = 80", good: true,  note: "Your sheet says 83 R2. That matches. Nice work!" },
   { n: 148, d: 6, est: "150 ÷ 6 = 25", good: true,  note: "Your sheet says 24 R4. That matches. Nice work!" },
   { n: 948, d: 7, est: "980 ÷ 7 = 140", good: true, note: "Your sheet says 135 R3. That matches. Nice work!" },
-  { n: 179, d: 4, est: "160 ÷ 4 = 40", good: false, note: "Your sheet looks like it says 19. Fix this one: 17 tens shared into 4 groups is 4 tens each, so the answer starts with 4." },
+  { n: 179, d: 4, est: "160 ÷ 4 = 40", good: false, note: "Your sheet looks like it says 19. Fix this one: the answer starts with 4 tens." },
   { n: 125, d: 5, est: "100 ÷ 5 = 20", good: true,  note: "Your sheet says 25. That matches. Nice work!" },
   { n: 418, d: 8, est: "400 ÷ 8 = 50", good: true,  note: "Your sheet says 52 R2. That matches. Nice work!" },
   { n: 587, d: 2, est: "600 ÷ 2 = 300", good: false, note: "Your sheet says 293 R but the remainder number is missing. Write R1." },
   { n: 747, d: 8, est: "720 ÷ 8 = 90", good: true,  note: "Your sheet says 93 R3. That matches. Nice work!" }
 ];
 const PLACE = ["hundreds", "tens", "ones"], ONE = ["hundred", "ten", "one"];
+const KIND_COLOR = ["green", "red", "blue"]; // hundreds squares, tens sticks, ones dots
 const unit = (n, i) => n + " " + (n === 1 ? ONE[i] : PLACE[i]);
-const C = 2; // first dividend column
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const f = x => x.toFixed(1);
+const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const narrow = matchMedia("(max-width: 620px)");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function build(p) {
+function build(p, tall) {
+  const svg = $("board");
+  svg.textContent = "";
+  const defs = mk("defs", {});
+  svg.append(defs);
+  const items = [], caps = [];
+  let step = -1, seed = p.n * 31 + p.d;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const j = a => (rnd() - .5) * 2 * a;
+  const begin = (label, text) => { step++; caps.push({ label, text }); };
+
+  function T(x, y, str, o = {}) {
+    const el = mk("text", { x: f(x), y: f(y), "font-size": o.size || 30, "text-anchor": o.anchor || "start", class: "t " + (o.color || "ink") });
+    el.textContent = str;
+    svg.append(el);
+    const b = el.getBBox(), id = "cp" + items.length;
+    const cp = mk("clipPath", { id }), r = mk("rect", { x: f(b.x - 6), y: f(b.y - 8), width: 0, height: f(b.height + 16) });
+    cp.append(r); defs.append(cp);
+    el.setAttribute("clip-path", `url(#${id})`);
+    const it = { el, r, b, step, kind: "t", chars: str.length, dur: Math.max(230, str.length * (o.rate || 75)), gap: 90, color: o.color || "ink" };
+    items.push(it);
+    return it;
+  }
+  function S(d, o = {}) {
+    const el = mk("path", { d, pathLength: 1, class: "s " + (o.color || "ink"), "stroke-width": o.w || 3 });
+    svg.append(el);
+    const it = { el, step, kind: "s", len: el.getTotalLength(), dur: o.dur || 260, gap: o.gap == null ? 80 : o.gap, color: o.color || "ink" };
+    items.push(it);
+    return it;
+  }
+  const line = (x1, y1, x2, y2) => `M${f(x1)} ${f(y1)} Q${f((x1 + x2) / 2 + j(2))} ${f((y1 + y2) / 2 + j(2))} ${f(x2)} ${f(y2)}`;
+  const box = (x, y, w, h) => `M${f(x + j(2))} ${f(y + j(2))} L${f(x + w + j(2))} ${f(y + j(2))} L${f(x + w + j(2))} ${f(y + h + j(2))} L${f(x + j(2))} ${f(y + h + j(2))} Z`;
+  const ring = (cx, cy, r) => `M${f(cx - r)} ${f(cy)} A${r} ${r} 0 1 1 ${f(cx + r)} ${f(cy)} A${r} ${r} 0 1 1 ${f(cx - r)} ${f(cy + .6)}`;
+
   const ds = String(p.n).split("").map(Number), n = ds.length, d = p.d;
-  const steps = [], cells = {};
-  let step;
-  const begin = text => { step = { text, mark: [] }; steps.push(step); };
-  const put = (r, c, ch, cls) => { cells[r + "," + c] = { ch: String(ch), cls: cls || "", step: steps.length - 1 }; };
+  const Q = Math.floor(p.n / d), R = p.n % d, hasH = Q >= 100;
+  const CS = 46, C = 2, rowsN = 2 + 2 * String(Q).length;
 
-  begin(`We need to share ${p.n} into ${d} equal groups. Start with the biggest blocks.`);
-  put(1, 0, d); put(1, 1, ")");
-  ds.forEach((x, i) => put(1, C + i, x, "over"));
+  // Where things live on the board
+  const W = tall ? 460 : 800;
+  const title = tall ? { x: 20, y: 58 } : { x: 40, y: 62 };
+  const div = tall ? { x: 14, y: 108 } : { x: 34, y: 95 };
+  const divBottom = div.y + rowsN * CS;
+  const G = tall ? { x: 20, y: divBottom + 44, w: 420 } : { x: 410, y: 122, w: 360 };
+  const cx = c => div.x + c * CS + CS / 2, by = r => div.y + r * CS + 36;
+  const D = (r, c, ch, color) => T(cx(c), by(r), String(ch), { size: 40, anchor: "middle", color, rate: 230 });
 
-  let cur = 0, started = false, row = 2, curRow = 1, prev = 0, Q = 0;
+  const gRows = d > 4 ? 2 : 1, gCols = Math.ceil(d / gRows), gGap = 8;
+  const gw = (G.w - (gCols - 1) * gGap) / gCols, gh = gRows === 1 ? 170 : 125;
+  const gx = g => G.x + (g % gCols) * (gw + gGap), gy = g => G.y + 14 + Math.floor(g / gCols) * (gh + gGap);
+  let noteY = G.y + 14 + gRows * gh + (gRows - 1) * gGap + 36;
+  const note = (str, color) => { const it = T(G.x, noteY, str, { size: 23, color }); noteY += 33; return it; };
+
+  function deal(i, q) { // hand out q blocks of place i to every group, one round at a time
+    const made = [];
+    const stickGap = Math.min(11, (gw - 20) / 9), dotGap = Math.min(12, (gw - 26) / 8);
+    for (let k = 0; k < q; k++) for (let g = 0; g < d; g++) {
+      const x = gx(g), y = gy(g), top = y + (hasH ? 42 : 12), o = { color: KIND_COLOR[i], gap: 12, w: 2.6 };
+      if (i === 0) made.push(S(box(x + 10 + k * 28, y + 10, 22, 22), { ...o, dur: 170 }));
+      else if (i === 1) made.push(S(line(x + 11 + k * stickGap + j(1.2), top, x + 11 + k * stickGap + j(1.2), top + 34), { ...o, dur: 80 }));
+      else made.push(S(ring(x + 14 + k * dotGap, top + 48, 3.6), { ...o, dur: 80 }));
+    }
+    const total = made.reduce((a, m) => a + m.dur + m.gap, 0);
+    if (total > 3600) made.forEach(m => { m.dur *= 3600 / total; m.gap *= 3600 / total; });
+  }
+
+  // Step 1: set up the board
+  begin("Set up", `Share ${p.n} into ${d} equal groups. Each box is one group. A quick estimate, ${p.est}, says the answer should be near ${p.est.split("= ")[1]}.`);
+  const tt = T(title.x, title.y, `${p.n} ÷ ${d} = ?`, { size: 46 });
+  S(line(tt.b.x, title.y + 11, tt.b.x + tt.b.width, title.y + 12), { color: "red", dur: 320 });
+  if (tall) T(title.x, title.y + 36, "estimate: " + p.est, { size: 24, color: "green" });
+  else T(W - 30, title.y - 2, "estimate: " + p.est, { size: 24, color: "green", anchor: "end" });
+  D(1, 0, d);
+  const xb = div.x + C * CS - 3, yt = div.y + CS + 3;
+  S(`M${xb - 5} ${yt + CS - 5} Q${xb + 12} ${f(yt + CS / 2)} ${xb} ${yt} L${div.x + (C + n) * CS + 2} ${f(yt + j(2))}`, { dur: 480 });
+  ds.forEach((x, i) => D(1, C + i, x));
+  T(G.x + G.w / 2, G.y, `${d} equal groups`, { size: 25, color: "blue", anchor: "middle" });
+  for (let g = 0; g < d; g++) S(box(gx(g), gy(g), gw, gh), { color: "blue", dur: 300, w: 2.4 });
+
+  // The division itself
+  let cur = 0, started = false, row = 2, curRow = 1, prev = 0;
   for (let i = 0; i < n; i++) {
     cur = cur * 10 + ds[i];
     if (started) {
-      begin(prev === 0
-        ? `No ${PLACE[i - 1]} left over. Bring down the ${unit(ds[i], i)}. Now we have ${unit(cur, i)} to share.`
-        : `Trade the ${unit(prev, i - 1)} for ${prev * 10} ${PLACE[i]}. Bring down the ${ds[i]} more ${PLACE[i]}. Now we have ${unit(cur, i)}.`);
-      put(curRow, C + i, ds[i]);
+      begin("Bring down", prev
+        ? `Trade the ${unit(prev, i - 1)} for ${prev * 10} ${PLACE[i]} and bring down the ${ds[i]}. Now there are ${unit(cur, i)} to share.`
+        : `Nothing to trade. Bring down the ${ds[i]}. Now there are ${unit(cur, i)} to share.`);
+      const ax = cx(C + i), y1 = by(1) + 14, y2 = by(curRow) - 36;
+      S(`M${f(ax)} ${y1} L${f(ax + j(1.5))} ${y2} M${f(ax - 6)} ${y2 - 8} L${f(ax)} ${y2} L${f(ax + 6)} ${y2 - 8}`, { color: "red", w: 2.2, dur: 420 });
+      D(curRow, C + i, ds[i]);
+      note(prev ? `${unit(prev, i - 1)} = ${prev * 10} ${PLACE[i]}.  ${prev * 10} + ${ds[i]} = ${cur} ${PLACE[i]}` : `0 ${PLACE[i - 1]} left. Bring down ${unit(ds[i], i)}`);
     }
     if (!started && cur < d && i < n - 1) {
-      begin(`${unit(cur, i)} is not enough to give each of the ${d} groups one. Trade them: ${unit(cur, i)} make ${cur * 10} ${PLACE[i + 1]}, plus ${ds[i + 1]} more makes ${cur * 10 + ds[i + 1]} ${PLACE[i + 1]}.`);
-      step.mark.push("1," + (C + i), "1," + (C + i + 1));
+      const nxt = cur * 10 + ds[i + 1];
+      begin("Trade", `${unit(cur, i)} can't give every group one. Trade them for ${cur * 10} ${PLACE[i + 1]}. With the ${ds[i + 1]} ${PLACE[i + 1]} we already have, that makes ${nxt} ${PLACE[i + 1]}.`);
+      S(`M${f(cx(C + i) - 15)} ${by(1) + 6} Q${f((cx(C + i) + cx(C + i + 1)) / 2)} ${by(1) + 15} ${f(cx(C + i + 1) + 15)} ${by(1) + 6}`, { color: "blue", dur: 320 });
+      note(`${unit(cur, i)} = ${cur * 10} ${PLACE[i + 1]}.  ${cur * 10} + ${ds[i + 1]} = ${nxt} ${PLACE[i + 1]}`);
       continue;
     }
     started = true;
-    const q = Math.floor(cur / d), prod = q * d, rem = cur - prod;
-    Q = Q * 10 + q;
-    begin(`Share ${unit(cur, i)} into ${d} groups. ${d} × ${q} = ${prod} is as close as we can get without going over. Each group gets ${unit(q, i)}. Write ${q} on top.`);
-    put(0, C + i, q);
+    const q = Math.floor(cur / d), prod = q * d, rem = cur - prod, ps = String(prod);
+    begin("Share the " + PLACE[i], `Share ${unit(cur, i)}: ${d} × ${q} = ${prod} is as close as we can get without going over. Every group gets ${unit(q, i)}.`);
+    D(0, C + i, q, "blue");
+    deal(i, q);
 
-    begin(`We gave out ${d} × ${q} = ${unit(prod, i)}. Subtract: ${cur} − ${prod} = ${rem}. ${rem ? unit(rem, i) + " left over." : "Nothing left over!"}`);
-    const ps = String(prod);
-    put(row, C + i - ps.length, "−", "under");
-    ps.split("").forEach((ch, k) => put(row, C + i - ps.length + 1 + k, ch, "under"));
-    put(row + 1, C + i, rem);
-    curRow = row + 1; row += 2; prev = rem;
+    begin("Subtract", `We handed out ${unit(prod, i)}. ${cur} − ${prod} = ${rem}. That leaves ${rem ? unit(rem, i) : "nothing"}.`);
+    const mx = cx(C + i - ps.length);
+    S(line(mx - 9, by(row) - 13, mx + 9, by(row) - 13), { dur: 150 });
+    ps.split("").forEach((ch, k) => D(row, C + i - ps.length + 1 + k, ch));
+    S(line(mx - 16, by(row) + 9, cx(C + i) + 18, by(row) + 9 + j(1.5)), { dur: 300 });
+    D(row + 1, C + i, rem);
+    curRow = row + 1; row += 2; prev = rem; cur = rem;
   }
-  const answer = p.n + " ÷ " + d + " = " + Q + (prev ? " R" + prev : "");
-  if (prev) {
-    begin(`${unit(prev, n - 1)} left. That is fewer than ${d}, so we can't share ${prev === 1 ? "it" : "them"} fairly. That's the remainder, R. So ${answer}.`);
-    put(0, C + n, "R", "small"); put(0, C + n + 1, prev);
-  } else {
-    begin(`Nothing is left over, so there is no remainder. So ${answer}.`);
-  }
-  begin(`Check: ${d} × ${Q} = ${d * Q}${prev ? `, and ${d * Q} + ${prev} = ${p.n}` : ""}. ✓ Estimate: ${p.est}. Our answer ${Q} is close to that, so it makes sense.`);
-  return { steps, cells, rows: row, answer };
+
+  // Last step: remainder, answer, check
+  const answer = `${p.n} ÷ ${d} = ${Q}` + (R ? ` R${R}` : "");
+  const said = answer.replace(/ /g, "\u00a0");
+  begin("Answer", R
+    ? `${unit(R, n - 1)} can't be shared fairly among ${d} groups, so that is the remainder. ${said}. Multiply back to check.`
+    : `Nothing is left over, so there is no remainder. ${said}. Multiply back to check.`);
+  if (R) {
+    T(div.x + (C + n) * CS + 6, by(0), "R" + R, { size: 36, color: "red" });
+    const lo = T(G.x, noteY, "left over:", { size: 23, color: "red" });
+    for (let k = 0; k < R; k++) S(ring(lo.b.x + lo.b.width + 18 + k * 15, noteY - 8, 3.6), { color: "red", dur: 90, gap: 30, w: 2.6 });
+    noteY += 33;
+  } else note("nothing left over!", "green");
+  const takeY = tall ? noteY + 40 : divBottom + 62;
+  const ans = T(title.x, takeY, answer, { size: 44, color: "blue" });
+  S(line(ans.b.x, takeY + 11, ans.b.x + ans.b.width, takeY + 12), { color: "red", dur: 320 });
+  let chk = T(title.x, takeY + 44, `check: ${d} × ${Q} = ${d * Q}`, { size: 25, color: "green" }), chkY = takeY + 44;
+  if (R) { chkY += 31; chk = T(title.x, chkY, `${d * Q} + ${R} = ${p.n}`, { size: 25, color: "green" }); }
+  const kx = chk.b.x + chk.b.width + 12;
+  S(`M${f(kx)} ${chkY - 9} L${f(kx + 8)} ${chkY} L${f(kx + 22)} ${chkY - 22}`, { color: "green", dur: 260 });
+
+  const H = Math.max(chkY + 24, tall ? 0 : noteY);
+  svg.setAttribute("viewBox", `0 0 ${W} ${Math.ceil(H)}`);
+  svg.setAttribute("aria-label", `Whiteboard working out ${p.n} divided by ${d}`);
+
+  const pen = mk("g", { id: "pen", visibility: "hidden" });
+  pen.append(mk("path", { d: "M0 0 L4 -11 L12 -6 Z", class: "tip ink" }), mk("path", { d: "M4 -11 L12 -6 L40 -50 L32 -55 Z", class: "body" }));
+  svg.append(pen);
+  return { items, caps, pen };
 }
 
-const $ = id => document.getElementById(id);
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const done = new Set();
-let pi = 0, si = 0, model = null, timer = null;
+let pi = 0, si = 0, model = null, raf = 0, wait = 0, running = false, auto = false, liveItems = [];
 
 PROBLEMS.forEach((p, i) => {
   const b = document.createElement("button");
-  b.className = "tab"; b.type = "button"; b.textContent = i + 1;
-  b.setAttribute("aria-label", `Problem ${i + 1}: ${p.n} divided by ${p.d}`);
-  b.onclick = () => open(i);
-  $("tabs").appendChild(b);
+  b.className = "chip"; b.type = "button"; b.textContent = `${i + 1}.  ${p.n} ÷ ${p.d}`;
+  b.onclick = () => { auto = false; open(i, 0, true); };
+  $("chips").appendChild(b);
 });
 
-function open(i) {
-  pi = i; si = 0; model = build(PROBLEMS[i]);
-  const p = PROBLEMS[i], g = $("grid");
-  $("heading").innerHTML = `Problem ${i + 1}: <b>${p.n} ÷ ${p.d}</b>`;
-  g.textContent = "";
-  g.setAttribute("aria-label", `Long division of ${p.n} by ${p.d}`);
-  for (let r = 0; r < model.rows; r++) for (let c = 0; c < 7; c++) {
-    const el = document.createElement("div"), cell = model.cells[r + "," + c];
-    el.className = "c " + (cell ? cell.cls : "");
-    el.dataset.key = r + "," + c;
-    if (cell) {
-      const s = document.createElement("span");
-      s.textContent = cell.ch;
-      s.style.setProperty("--tilt", (((r * 7 + c * 13) % 9) - 4) + "deg");
-      el.appendChild(s);
-    }
-    g.appendChild(el);
-  }
-  [...$("tabs").children].forEach((t, k) => {
-    t.setAttribute("aria-current", k === i);
-    t.classList.toggle("done", done.has(k));
-  });
-  render(true);
+function setP(it, p) {
+  it.el.style.visibility = p > 0 ? "visible" : "hidden";
+  if (it.kind === "t") it.r.setAttribute("width", f(p >= 1 ? it.b.width + 40 : (it.b.width + 8) * p));
+  else it.el.style.strokeDashoffset = 1 - p;
 }
 
-function render(animate) {
-  const st = model.steps[si], last = si === model.steps.length - 1;
-  let order = 0;
-  document.querySelectorAll("#grid .c").forEach(el => {
-    const cell = model.cells[el.dataset.key];
-    if (!cell) return;
-    const isNew = cell.step === si;
-    el.classList.toggle("on", cell.step <= si);
-    el.classList.toggle("fresh", isNew || st.mark.includes(el.dataset.key));
-    el.classList.remove("writing");
-    if (isNew && animate && !reduce) {
-      el.style.setProperty("--delay", (order++ * 0.24) + "s");
-      void el.offsetWidth;
-      el.classList.add("writing");
-    }
+function open(i, s, animate) {
+  pi = i; si = s;
+  model = build(PROBLEMS[i], narrow.matches);
+  [...$("chips").children].forEach((c, k) => {
+    c.setAttribute("aria-current", k === i);
+    c.classList.toggle("done", done.has(k));
   });
-  $("count").textContent = `Step ${si + 1} of ${model.steps.length}`;
-  $("back").disabled = si === 0;
-  $("next").textContent = !last ? "Next step ✏️" : pi < PROBLEMS.length - 1 ? "Next problem →" : "Start over ↺";
+  show(animate);
+}
+
+function show(animate) {
+  cancelAnimationFrame(raf); clearTimeout(wait);
+  const last = si === model.caps.length - 1, cap = model.caps[si];
+  liveItems = [];
+  model.items.forEach(it => {
+    if (it.step < si) setP(it, 1);
+    else if (it.step > si) setP(it, 0);
+    else liveItems.push(it);
+  });
+  $("count").textContent = `Step ${si + 1} of ${model.caps.length} · ${cap.label}`;
+  $("say").textContent = cap.text;
   $("note").hidden = true;
-  type(st.text, animate && !reduce, () => {
-    if (!last) return;
+  $("back").disabled = si === 0;
+  $("next").textContent = !last ? "Next step" : pi < PROBLEMS.length - 1 ? "Next problem" : "Start over";
+  $("play").textContent = auto ? "⏸ Pause" : "▶ Play";
+  if (!animate || reduce) return finish();
+
+  let acc = 0;
+  liveItems.forEach(it => { setP(it, 0); it.t0 = acc; acc += it.dur + it.gap; });
+  keepInView();
+  running = true;
+  const start = performance.now(), tip = model.pen.firstChild;
+  const frame = now => {
+    const t = now - start;
+    let active = null;
+    for (const it of liveItems) {
+      const p = Math.min(1, Math.max(0, (t - it.t0) / it.dur));
+      setP(it, p);
+      if (t >= it.t0) active = it;
+    }
+    if (t >= acc) return finish();
+    if (active) {
+      const p = Math.min(1, (t - active.t0) / active.dur);
+      let x, y;
+      if (active.kind === "t") {
+        x = active.b.x + active.b.width * p;
+        y = active.b.y + active.b.height * (.6 + .16 * Math.sin(p * active.chars * 3.2));
+      } else {
+        const pt = active.el.getPointAtLength(p * active.len);
+        x = pt.x; y = pt.y;
+      }
+      model.pen.setAttribute("transform", `translate(${f(x)} ${f(y)})`);
+      model.pen.setAttribute("visibility", "visible");
+      tip.setAttribute("class", "tip " + active.color);
+    }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+}
+
+function finish() {
+  cancelAnimationFrame(raf);
+  running = false;
+  liveItems.forEach(it => setP(it, 1));
+  model.pen.setAttribute("visibility", "hidden");
+  const last = si === model.caps.length - 1;
+  if (last) {
     const p = PROBLEMS[pi];
     $("note").textContent = p.note;
     $("note").classList.toggle("good", p.good);
     $("note").hidden = false;
     done.add(pi);
-    $("tabs").children[pi].classList.add("done");
-  });
+    $("chips").children[pi].classList.add("done");
+    auto = false;
+    $("play").textContent = "▶ Play";
+  } else if (auto) {
+    wait = setTimeout(() => { si++; show(true); }, 1500 + model.caps[si].text.length * 45);
+  }
 }
 
-function type(text, animate, after) {
-  clearInterval(timer); timer = null;
-  const line = $("line");
-  line.textContent = "";
-  const shown = document.createElement("span"), ghost = document.createElement("span");
-  ghost.className = "ghost";
-  line.append(shown, ghost);
-  let k = animate ? 0 : text.length;
-  const paint = () => { shown.textContent = text.slice(0, k); ghost.textContent = text.slice(k); };
-  const finish = () => { clearInterval(timer); timer = null; k = text.length; paint(); after(); };
-  type.finish = finish;
-  paint();
-  if (!animate) return finish();
-  timer = setInterval(() => { k++; paint(); if (k >= text.length) finish(); }, 32);
+function keepInView() { // on a phone the board is taller than the screen, so follow the marker
+  let top = Infinity, bottom = -Infinity;
+  liveItems.forEach(it => { const r = it.el.getBoundingClientRect(); top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom); });
+  const limit = document.querySelector(".dock").getBoundingClientRect().top;
+  if (top < 8 || bottom > limit - 8) {
+    try { window.scrollBy({ top: (top + bottom) / 2 - limit / 2, behavior: reduce ? "auto" : "smooth" }); } catch (e) {}
+  }
 }
 
 function next() {
-  if (timer) return type.finish();
-  if (si < model.steps.length - 1) { si++; render(true); }
-  else open((pi + 1) % PROBLEMS.length);
+  if (running) return finish();
+  clearTimeout(wait);
+  if (si < model.caps.length - 1) { si++; show(true); }
+  else open((pi + 1) % PROBLEMS.length, 0, true);
 }
-function back() { if (si > 0) { si--; render(false); } }
+function back() {
+  auto = false;
+  if (si > 0) { si--; show(false); keepInView(); }
+}
+function play() {
+  auto = !auto;
+  clearTimeout(wait);
+  $("play").textContent = auto ? "⏸ Pause" : "▶ Play";
+  if (!auto || running) return;
+  if (si < model.caps.length - 1) { si++; show(true); }
+  else { si = 0; show(true); }
+}
 
 $("next").onclick = next;
 $("back").onclick = back;
+$("play").onclick = play;
 document.addEventListener("keydown", e => {
   if (e.target.closest("button")) return;
   if (e.key === "ArrowRight") next();
   if (e.key === "ArrowLeft") back();
 });
+narrow.addEventListener("change", () => open(pi, si, false));
 
-open(0);
+const fontsReady = document.fonts && document.fonts.load ? document.fonts.load('30px "Patrick Hand"') : Promise.resolve();
+Promise.race([fontsReady, new Promise(r => setTimeout(r, 1500))]).catch(() => {}).then(() => open(0, 0, true));
 </script>
